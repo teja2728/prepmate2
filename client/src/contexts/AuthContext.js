@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
+    try { window.dispatchEvent(new CustomEvent('prepmate:logout')); } catch {}
     toast.success('Logged out successfully');
   };
 
@@ -105,4 +106,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+
 

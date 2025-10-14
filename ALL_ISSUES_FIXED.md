@@ -95,3 +95,5 @@ setup.bat
 
 **The application is now fully functional and ready for use!** 🚀
 
+
+

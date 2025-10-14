@@ -47,3 +47,5 @@ echo    3. Get your Gemini API key from Google AI Studio
 echo.
 pause
 
+
+

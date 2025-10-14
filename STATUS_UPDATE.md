@@ -75,3 +75,5 @@ If the frontend doesn't start:
 
 The application is now **fully functional** and ready for testing! 🎉
 
+
+

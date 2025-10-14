@@ -67,3 +67,5 @@ The application is using the latest Gemini 2.5 Flash model and all JSON parsing 
 
 **Your MERN stack placement trainer is ready for production use!** 🚀
 
+
+

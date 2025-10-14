@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
-import { LogOut, User, Upload, Home } from 'lucide-react';
+import { LogOut, User, Upload, Home, Bookmark, BarChart2, Bell } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -46,6 +46,42 @@ const Navbar = () => {
               >
                 <Upload className="w-4 h-4" />
                 <span>Upload</span>
+              </Link>
+
+              <Link
+                to="/saved-resources"
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/saved-resources') 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <Bookmark className="w-4 h-4" />
+                <span>Saved</span>
+              </Link>
+
+              <Link
+                to="/daily-challenge"
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/daily-challenge') 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <Bell className="w-4 h-4" />
+                <span>Daily Challenge</span>
+              </Link>
+
+              <Link
+                to="/progress"
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  isActive('/progress') 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <BarChart2 className="w-4 h-4" />
+                <span>Progress</span>
               </Link>
             </div>
           )}

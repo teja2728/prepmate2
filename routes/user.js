@@ -6,6 +6,7 @@ const { authMiddleware } = require('../middleware/auth');
 const ResumeRecord = require('../models/ResumeRecord');
 const geminiService = require('../services/geminiService');
 const LLMLog = require('../models/LLMLog');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -223,5 +224,54 @@ router.delete('/resume/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   POST /api/user/resources/save
+// @desc    Save a favorite learning resource for the user
+// @access  Private
+router.post('/resources/save', authMiddleware, [
+  body('skill').notEmpty().withMessage('Skill is required'),
+  body('title').notEmpty().withMessage('Title is required'),
+  body('url').isURL().withMessage('Valid URL is required'),
+  body('description').notEmpty().withMessage('Description is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+    }
+
+    const { skill, title, url, description } = req.body;
+
+    // Avoid duplicates by URL
+    const updated = await User.findOneAndUpdate(
+      { _id: req.user._id, 'savedResources.url': { $ne: url } },
+      { $push: { savedResources: { skill, title, url, description } } },
+      { new: true }
+    ).select('savedResources');
+
+    // If resource already exists (duplicate URL), return unchanged list
+    const userDoc = updated || await User.findById(req.user._id).select('savedResources');
+
+    res.status(200).json({ message: 'Saved resources updated', savedResources: userDoc.savedResources });
+  } catch (error) {
+    console.error('Save resource error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/user/resources/saved
+// @desc    Get user's saved learning resources
+// @access  Private
+router.get('/resources/saved', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('savedResources');
+    res.json({ savedResources: user?.savedResources || [] });
+  } catch (error) {
+    console.error('Get saved resources error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
+
+
 

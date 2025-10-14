@@ -24,6 +24,30 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  skills: {
+    type: [String],
+    default: []
+  },
+  savedResources: [{
+    skill: { type: String, required: true },
+    title: { type: String, required: true },
+    url: { type: String, required: true },
+    description: { type: String, required: true },
+    savedAt: { type: Date, default: Date.now }
+  }],
+  improvedResume: {
+    summary: { type: String, default: '' },
+    overallScore: { type: Number, default: 0 },
+    recommendations: [{
+      section: String,
+      current: String,
+      improved: String,
+      confidence: Number,
+      reason: String,
+    }],
+    improvedResume: { type: String, default: '' },
+    updatedAt: { type: Date, default: Date.now }
   }
 }, {
   timestamps: true

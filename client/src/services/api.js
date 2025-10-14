@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds timeout for Gemini API calls
+  timeout: 180000, // 180 seconds timeout for Gemini API calls
 });
 
 // Request interceptor to add auth token
@@ -55,7 +55,10 @@ export const resumeAPI = {
 export const generateAPI = {
   questions: (data) => api.post('/api/generate/questions', data),
   companyArchive: (companyName) => api.post('/api/generate/company-archive', { companyName }),
-  resources: (jdText) => api.post('/api/generate/resources', { jdText }),
+  // Accepts { resumeId } or { resumeText, jdText }
+  resources: (payload) => api.post('/api/generate/resources', payload),
+  resumeSuggestions: (payload) => api.post('/api/generate/resume-suggestions', payload),
+  resumeImprover: (payload) => api.post('/api/generate/resume-improver', payload),
 };
 
 // Admin API
@@ -64,5 +67,29 @@ export const adminAPI = {
   getStats: () => api.get('/api/admin/stats'),
 };
 
+// Resources API (new endpoints)
+export const resourcesAPI = {
+  save: ({ title, link, description }) => api.post('/api/resources/save', { title, link, description }),
+  getSaved: () => api.get('/api/resources/saved'),
+  remove: (id) => api.delete(`/api/resources/${id}`),
+};
+
+// Daily Challenges API
+export const challengesAPI = {
+  today: () => api.get('/api/challenges/today'),
+  submit: (payload) => api.post('/api/challenges/submit', payload),
+  history: (days = 7) => api.get('/api/challenges/history', { params: { days } }),
+  refresh: () => api.post('/api/challenges/refresh'),
+};
+
+// Progress API
+export const progressAPI = {
+  mark: ({ skillName, resourceLink = null, isCompleted, skillTotal = null }) =>
+    api.post('/api/progress/mark', { skillName, resourceLink, isCompleted, skillTotal }),
+  getMine: () => api.get('/api/progress/me'),
+};
+
 export default api;
+
+
 
