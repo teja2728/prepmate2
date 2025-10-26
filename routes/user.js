@@ -34,24 +34,48 @@ const upload = multer({
   }
 });
 
-// Helper function to extract text from uploaded file
-const extractTextFromFile = (file) => {
-  // For now, we'll handle text files directly
-  // In production, you'd want to use libraries like pdf-parse for PDFs
-  if (file.mimetype === 'text/plain') {
-    return file.buffer.toString('utf-8');
+// Helper function to extract text from uploaded file (async)
+const extractTextFromFile = async (file) => {
+  try {
+    if (!file) return '';
+    if (file.mimetype === 'text/plain') {
+      return file.buffer.toString('utf-8');
+    }
+    if (file.mimetype === 'application/pdf') {
+      try {
+        const pdfParse = require('pdf-parse');
+        const data = await pdfParse(file.buffer);
+        return data.text || '';
+      } catch (e) {
+        console.warn('pdf-parse not available or failed, falling back:', e.message);
+      }
+    }
+    if (
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.mimetype === 'application/msword'
+    ) {
+      try {
+        const mammoth = require('mammoth');
+        const result = await mammoth.extractRawText({ buffer: file.buffer });
+        return result.value || '';
+      } catch (e) {
+        console.warn('mammoth not available or failed, falling back:', e.message);
+      }
+    }
+  } catch (err) {
+    console.warn('extractTextFromFile error:', err?.message || err);
   }
-  
-  // For other file types, return a placeholder
-  // In production, implement proper text extraction
-  return `[File content from ${file.originalname} - text extraction not implemented for ${file.mimetype}]`;
+  return `[File content from ${file?.originalname || 'unknown'} - text extraction not implemented for ${file?.mimetype || 'unknown'}]`;
 };
 
 // @route   POST /api/user/resume
 // @desc    Upload resume and job description
 // @access  Private
-router.post('/resume', authMiddleware, upload.single('resumeFile'), [
-  body('jdText').notEmpty().withMessage('Job description is required'),
+router.post('/resume', authMiddleware, upload.fields([
+  { name: 'resumeFile', maxCount: 1 },
+  { name: 'jdFile', maxCount: 1 }
+]), [
+  body('jdText').optional().isString(),
   body('resumeText').optional().isString()
 ], async (req, res) => {
   try {
@@ -65,18 +89,29 @@ router.post('/resume', authMiddleware, upload.single('resumeFile'), [
 
     const { jdText, resumeText } = req.body;
     let finalResumeText = resumeText;
+    let finalJDText = jdText;
 
-    // Handle file upload if present
-    if (req.file) {
-      finalResumeText = extractTextFromFile(req.file);
+    // Handle resume file if present
+    const resumeFile = req.files?.resumeFile?.[0];
+    if (resumeFile) {
+      finalResumeText = await extractTextFromFile(resumeFile);
+    }
+
+    // Handle JD file if present
+    const jdFile = req.files?.jdFile?.[0];
+    if (jdFile) {
+      finalJDText = await extractTextFromFile(jdFile);
     }
 
     if (!finalResumeText) {
       return res.status(400).json({ message: 'Resume text or file is required' });
     }
+    if (!finalJDText) {
+      return res.status(400).json({ message: 'Job description text or file is required' });
+    }
 
     // Parse resume using Gemini
-    const parseResult = await geminiService.parseResumeAndJD(finalResumeText, jdText);
+    const parseResult = await geminiService.parseResumeAndJD(finalResumeText, finalJDText);
     
     if (!parseResult.success) {
       return res.status(500).json({ 
@@ -99,7 +134,7 @@ router.post('/resume', authMiddleware, upload.single('resumeFile'), [
       userId: req.user._id,
       endpoint: '/api/user/resume',
       promptType: 'resume_parse',
-      requestData: geminiService.sanitizeForLogging({ resumeText: finalResumeText, jdText }),
+      requestData: geminiService.sanitizeForLogging({ resumeText: finalResumeText, jdText: finalJDText }),
       responseData: parsedData,
       processingTime: parseResult.processingTime,
       success: true,
@@ -110,14 +145,22 @@ router.post('/resume', authMiddleware, upload.single('resumeFile'), [
     const resumeRecord = new ResumeRecord({
       userId: req.user._id,
       resumeText: finalResumeText,
-      jdText,
+      jdText: finalJDText,
       parsedData,
-      metadata: req.file ? {
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-        uploadDate: new Date()
-      } : null
+      metadata: {
+        resume: resumeFile ? {
+          fileName: resumeFile.originalname,
+          fileSize: resumeFile.size,
+          mimeType: resumeFile.mimetype,
+          uploadDate: new Date()
+        } : null,
+        jd: jdFile ? {
+          fileName: jdFile.originalname,
+          fileSize: jdFile.size,
+          mimeType: jdFile.mimetype,
+          uploadDate: new Date()
+        } : null
+      }
     });
 
     await resumeRecord.save();

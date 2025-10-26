@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 const badgeForPct = (pct) => {
   if (pct >= 0.8) return { label: 'Advanced', cls: 'bg-green-100 text-green-800' };
   if (pct >= 0.4) return { label: 'Intermediate', cls: 'bg-yellow-100 text-yellow-800' };
-  return { label: 'Beginner', cls: 'bg-gray-100 text-gray-800' };
+  return { label: 'Beginner', cls: 'bg-blue-100 text-blue-800' };
 };
 
 const Progress = () => {
@@ -49,53 +49,65 @@ const Progress = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="loading-spinner"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="loading-spinner"></div>
+          <p className="mt-3 text-gray-600">Loading your progress...</p>
+        </div>
       </div>
     );
   }
 
   if (bySkill.size === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">No progress yet. Open and complete resources to see progress here.</div>
+      <div className="container-page">
+        <div className="max-w-3xl mx-auto">
+          <div className="card text-center">
+            <p className="text-gray-700">No progress yet. Open and complete resources to see progress here.</p>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">My Skills Progress</h1>
-        <p className="text-gray-600 mt-2">Track your completion across skills and resources</p>
-      </div>
+    <div className="container-page">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="section-title">My Skills Progress</h1>
+          <p className="text-sm text-gray-600 mt-1">Track your completion across skills and resources</p>
+        </div>
 
-      <div className="space-y-6">
-        {[...bySkill.entries()].map(([skill, rec]) => {
-          const pct = rec.total > 0 ? rec.done / rec.total : 0;
-          const pctLabel = Math.round(pct * 100);
-          const badge = badgeForPct(pct);
-          return (
-            <div key={skill} className="card">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">{skill}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs ${badge.cls}`}>{badge.label}</span>
+        <div className="space-y-6">
+          {[...bySkill.entries()].map(([skill, rec]) => {
+            const pct = rec.total > 0 ? rec.done / rec.total : 0;
+            const pctLabel = Math.round(pct * 100);
+            const badge = badgeForPct(pct);
+            return (
+              <div key={skill} className="card">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{skill}</h3>
+                  <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                </div>
+                <div className="mb-2 text-sm text-gray-700">{rec.done} of {rec.total} resources completed • {pctLabel}%</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${pctLabel}%` }} />
+                </div>
+                <ul className="mt-4 space-y-2 text-sm text-gray-800">
+                  {rec.items.slice(0, 5).map((it) => (
+                    <li key={it._id} className="flex items-start gap-2">
+                      <span className="flex-shrink-0">{it.isCompleted ? '✅' : '⬜'}</span>
+                      <span className="flex-1">{it.resourceLink || 'Skill milestone'} {it.isCompleted && it.completedAt ? `• ${new Date(it.completedAt).toLocaleDateString()}` : ''}</span>
+                    </li>
+                  ))}
+                  {rec.items.length > 5 && (
+                    <li className="text-gray-500 italic">+{rec.items.length - 5} more</li>
+                  )}
+                </ul>
               </div>
-              <div className="mb-2 text-sm text-gray-700">{rec.done} of {rec.total} resources completed • {pctLabel}%</div>
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div className="bg-blue-600 h-2" style={{ width: `${pctLabel}%` }} />
-              </div>
-              <ul className="mt-4 space-y-1 text-sm text-gray-700">
-                {rec.items.slice(0, 5).map((it) => (
-                  <li key={it._id}>
-                    {it.isCompleted ? '✅' : '⬜'} {it.resourceLink || 'Skill milestone'} {it.isCompleted && it.completedAt ? `• ${new Date(it.completedAt).toLocaleDateString()}` : ''}
-                  </li>
-                ))}
-                {rec.items.length > 5 && (
-                  <li className="text-gray-500">+{rec.items.length - 5} more</li>
-                )}
-              </ul>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -5,14 +5,14 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { GeneratedProvider } from './contexts/GeneratedContext';
+import DailyChallenge from './pages/DailyChallenge';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Progress from './pages/Progress';
 import Register from './pages/Register';
 import Results from './pages/Results';
 import ResumeImprover from './pages/ResumeImprover';
 import SavedResources from './pages/SavedResources';
-import DailyChallenge from './pages/DailyChallenge';
-import Progress from './pages/Progress';
 import Upload from './pages/Upload';
 
 // ✅ New page for Gemini Link Extraction
@@ -92,9 +92,9 @@ function App() {
     <AuthProvider>
       <GeneratedProvider>
         <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
           <Navbar />
-          <main className="container mx-auto px-4 py-8">
+          <main>
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />

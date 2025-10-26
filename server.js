@@ -42,10 +42,42 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+// MongoDB connection with retry/backoff and helpful logs
+async function connectWithRetry(retries = 5, delayMs = 3000) {
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.error('MongoDB connection error: MONGO_URI is not set');
+    process.exit(1);
+  }
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await mongoose.connect(uri, {
+        // options are safe across mongoose v6+ (ignored if not needed)
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+      });
+      console.log('MongoDB connected successfully');
+      return true;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${attempt} failed:`, err?.message || err);
+      if (attempt < retries) {
+        console.log(`Retrying MongoDB connection in ${Math.round(delayMs / 1000)}s...`);
+        await new Promise(r => setTimeout(r, delayMs));
+      } else {
+        console.error('All MongoDB connection attempts failed. Check that your IP is whitelisted in Atlas and the URI is correct.');
+        return false;
+      }
+    }
+  }
+}
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected');
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -125,6 +157,14 @@ async function startDailyChallengeScheduler() {
   generateForAllUsers();
 }
 
-startDailyChallengeScheduler();
+// Boot sequence: connect DB, then start scheduler
+(async () => {
+  const ok = await connectWithRetry();
+  if (ok) {
+    startDailyChallengeScheduler();
+  } else {
+    console.warn('Skipping daily challenge scheduler startup because MongoDB is not connected.');
+  }
+})();
 
 module.exports = app;

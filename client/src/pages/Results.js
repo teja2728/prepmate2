@@ -206,30 +206,30 @@ const Results = () => {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case "easy":
-        return "bg-green-100 text-green-800";
+        return "bg-green-500/20 text-green-400 border border-green-500/30";
       case "medium":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
       case "hard":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500/20 text-red-400 border border-red-500/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
     }
   };
 
   const getTypeColor = (type) => {
     switch (type) {
       case "behavioral":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
       case "technical":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
       case "coding":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-500/20 text-orange-400 border border-orange-500/30";
       case "design":
-        return "bg-pink-100 text-pink-800";
+        return "bg-pink-500/20 text-pink-400 border border-pink-500/30";
       case "aptitude":
-        return "bg-indigo-100 text-indigo-800";
+        return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
     }
   };
 
@@ -252,69 +252,68 @@ const Results = () => {
 
   if (loading.resume) {
     return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="loading-spinner"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="loading-spinner"></div>
+          <p className="mt-3 text-gray-600">Loading results...</p>
+        </div>
       </div>
     );
   }
 
   if (!resume) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Resume not found
-        </h2>
-        <Link to="/dashboard" className="btn-primary">
-          Back to Dashboard
-        </Link>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="card text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Resume not found</h2>
+          <Link to="/dashboard" className="btn-primary">Back to Dashboard</Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Interview Preparation</h1>
-          <p className="text-gray-600 mt-2">
-            Resume: {resume.parsedData?.name || "Unknown"} • Uploaded: {new Date(resume.createdAt).toLocaleDateString()}
-          </p>
+    <div className="container-page">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="section-title">Interview Preparation</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Resume: {resume.parsedData?.name || "Unknown"} • Uploaded: {new Date(resume.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => setActiveTab('suggestions')} className="btn-secondary text-sm">Resume Suggestions</button>
+            <Link to={`/resume-improver/${resumeId}`} className="btn-primary text-sm">Resume Improver</Link>
+            <Link to="/dashboard" className="btn-secondary text-sm">Back</Link>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setActiveTab('suggestions')} className="btn-secondary">Resume Suggestions</button>
-          <Link to={`/resume-improver/${resumeId}`} className="btn-secondary">Open Resume Improver</Link>
-          <Link to="/dashboard" className="btn-secondary">Back to Dashboard</Link>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8">
-        <nav className="-mb-px flex space-x-8">
-          {[
-            { id: "questions", label: "Interview Questions", icon: HelpCircle },
-            { id: "company", label: "Company Archive", icon: Building2 },
-            { id: "resources", label: "Learning Resources", icon: BookOpen },
-            { id: "suggestions", label: "Resume Suggestions", icon: HelpCircle },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+        {/* Tabs */}
+        <div className="mb-6">
+          <nav className="tab-list overflow-x-auto">
+            {[
+              { id: "questions", label: "Interview Questions", icon: HelpCircle },
+              { id: "company", label: "Company Archive", icon: Building2 },
+              { id: "resources", label: "Learning Resources", icon: BookOpen },
+              { id: "suggestions", label: "Resume Suggestions", icon: HelpCircle },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`tab ${isActive ? 'tab-active' : ''} flex items-center gap-2 px-1`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="whitespace-nowrap">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
       {/* Questions Tab */}
       {activeTab === "questions" && (
@@ -631,6 +630,7 @@ const Results = () => {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
