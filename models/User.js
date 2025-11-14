@@ -25,10 +25,17 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  college: { type: String, default: '' },
+  degree: { type: String, default: '' },
+  year: { type: String, default: '' },
   skills: {
     type: [String],
     default: []
   },
+  goal: { type: String, default: '' },
+  linkedin: { type: String, default: '' },
+  github: { type: String, default: '' },
+  profilePic: { type: String, default: '' },
   savedResources: [{
     skill: { type: String, required: true },
     title: { type: String, required: true },

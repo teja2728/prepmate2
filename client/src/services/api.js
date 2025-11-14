@@ -61,6 +61,13 @@ export const generateAPI = {
   resumeImprover: (payload) => api.post('/api/generate/resume-improver', payload),
 };
 
+// Resume Improver API
+export const resumeImproverAPI = {
+  analyze: (payload = {}) => api.post('/api/resume-improver/analyze', payload),
+  history: () => api.get('/api/resume-improver/history'),
+  report: (id) => api.get(`/api/resume-improver/report/${id}`, { responseType: 'blob' }),
+};
+
 // Admin API
 export const adminAPI = {
   getLogs: (params) => api.get('/api/admin/llm-logs', { params }),
@@ -87,6 +94,16 @@ export const progressAPI = {
   mark: ({ skillName, resourceLink = null, isCompleted, skillTotal = null }) =>
     api.post('/api/progress/mark', { skillName, resourceLink, isCompleted, skillTotal }),
   getMine: () => api.get('/api/progress/me'),
+};
+
+// User API
+export const userAPI = {
+  updateProfile: (payload) => api.put('/api/user/profile/update', payload),
+};
+
+// Gemini API
+export const geminiAPI = {
+  analyzeProfile: (profile) => api.post('/api/gemini/profile/analyze', { profile }),
 };
 
 export default api;

@@ -9,6 +9,10 @@ const recommendationSchema = new mongoose.Schema({
 
 const analysisSchema = new mongoose.Schema({
   overallScore: { type: Number, min: 0, max: 100, required: true },
+  atsScore: { type: Number, min: 0, max: 100, default: 0 },
+  grammarScore: { type: Number, min: 0, max: 100, default: 0 },
+  clarityScore: { type: Number, min: 0, max: 100, default: 0 },
+  keywordCoverage: { type: Number, min: 0, max: 100, default: 0 },
   summary: { type: String, required: true },
   missingSkills: { type: [String], default: [] },
   recommendations: { type: [recommendationSchema], default: [] },

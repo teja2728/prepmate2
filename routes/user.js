@@ -9,6 +9,7 @@ const LLMLog = require('../models/LLMLog');
 const User = require('../models/User');
 
 const router = express.Router();
+let warnedPdfParse = false;
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -34,6 +35,24 @@ const upload = multer({
   }
 });
 
+// @route   PUT /api/user/profile/update
+// @desc    Update user profile fields
+// @access  Private
+router.put('/profile/update', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const allowed = ['name','college','degree','year','skills','goal','linkedin','github','profilePic'];
+    const update = {};
+    for (const k of allowed) {
+      if (typeof req.body[k] !== 'undefined') update[k] = req.body[k];
+    }
+    const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true }).select('-password');
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: 'Profile update failed' });
+  }
+});
+
 // Helper function to extract text from uploaded file (async)
 const extractTextFromFile = async (file) => {
   try {
@@ -43,11 +62,27 @@ const extractTextFromFile = async (file) => {
     }
     if (file.mimetype === 'application/pdf') {
       try {
-        const pdfParse = require('pdf-parse');
-        const data = await pdfParse(file.buffer);
-        return data.text || '';
+        let pdfParse = null;
+        try { pdfParse = require('pdf-parse'); } catch {}
+        if (pdfParse && typeof pdfParse === 'object' && typeof pdfParse.default === 'function') {
+          pdfParse = pdfParse.default;
+        }
+        if (typeof pdfParse !== 'function') {
+          try {
+            const mod = await import('pdf-parse');
+            pdfParse = mod?.default || mod;
+          } catch {}
+        }
+        if (typeof pdfParse === 'function') {
+          const data = await pdfParse(file.buffer);
+          return data.text || '';
+        }
+        throw new Error('pdf-parse module did not export a function');
       } catch (e) {
-        console.warn('pdf-parse not available or failed, falling back:', e.message);
+        if (!warnedPdfParse) {
+          console.warn('pdf-parse not available or failed, falling back:', e.message);
+          warnedPdfParse = true;
+        }
       }
     }
     if (

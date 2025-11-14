@@ -12,6 +12,8 @@ const resourcesRoutes = require('./routes/resources');
 const adminRoutes = require('./routes/admin');
 const progressRoutes = require('./routes/progress');
 const challengesRoutes = require('./routes/dailyChallengeRoutes');
+const geminiRoutes = require('./routes/gemini');
+const resumeImproverRoutes = require('./routes/resumeImprover');
 const DailyChallenge = require('./models/DailyChallenge');
 const User = require('./models/User');
 const geminiService = require('./services/geminiService');
@@ -87,6 +89,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/resources', resourcesRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/challenges', challengesRoutes);
+app.use('/api/gemini', geminiRoutes);
+app.use('/api/resume-improver', resumeImproverRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

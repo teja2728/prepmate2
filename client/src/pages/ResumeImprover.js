@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { generateAPI, resumeAPI } from '../services/api';
+import { resumeAPI, resumeImproverAPI } from '../services/api';
 import { useGenerated } from '../contexts/GeneratedContext';
+import ScoreRing from '../components/ResumeImprover/ScoreRing';
 
 const ScoreBar = ({ score = 0 }) => {
   const pct = Math.max(0, Math.min(100, Number(score) || 0));
@@ -37,6 +38,9 @@ const ResumeImprover = () => {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [analysisId, setAnalysisId] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [hLoading, setHLoading] = useState(false);
 
   // Simple improved preview state (user-applied fixes)
   const [preview, setPreview] = useState('');
@@ -60,23 +64,25 @@ const ResumeImprover = () => {
     if (cached?.resumeImprovement) {
       setAnalysis(cached.resumeImprovement);
     }
-  }, [resumeId]);
+  }, [resumeId, generated]);
 
   const regenerate = async () => {
     setGenerating(true);
     try {
-      const resp = await generateAPI.resumeImprover({ resumeId });
-      console.log('Resume improver response', resp.data);
-      setAnalysis(resp.data.analysis);
-      // Persist full response in context for reloads
-      generated.setResumeImprovement(resumeId, resp.data);
-      // If backend provides merged improved resume text, hydrate preview
-      const merged = resp.data?.simplified?.improvedResume || '';
-      if (merged) setPreview(merged);
-      toast.success('Resume improvement applied successfully');
+      const a = await resumeImproverAPI.analyze({ resumeId });
+      setAnalysis(a.data.analysis);
+      setAnalysisId(a.data.recordId || null);
+      setPreview(a.data.improvedMerged || '');
+      generated.setResumeImprovement(resumeId, a.data.analysis);
+      toast.success('Resume improvement ready');
     } catch (e) {
-      console.error('AxiosError', e);
-      alert('Failed to improve resume. Please check server logs.');
+      if (e?.response?.status === 404) {
+        toast.error('Please upload a resume first on the Resume Upload page.');
+      } else if (e?.response?.status === 400) {
+        toast.error('Please upload resume and JD first.');
+      } else {
+        toast.error('Failed to improve resume.');
+      }
     } finally {
       setGenerating(false);
     }
@@ -89,6 +95,36 @@ const ResumeImprover = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysis]);
+
+  useEffect(() => {
+    const run = async () => {
+      setHLoading(true);
+      try {
+        const resp = await resumeImproverAPI.history();
+        setHistory(resp.data.items || []);
+      } catch {}
+      setHLoading(false);
+    };
+    run();
+  }, []);
+
+  // Removed file upload flow; backend reads resume from DB automatically
+
+  const downloadReport = async () => {
+    try {
+      if (!analysisId) return toast.error('Report unavailable');
+      const resp = await resumeImproverAPI.report(analysisId);
+      const blob = new Blob([resp.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `PrepMate_Resume_Report_${new Date().toISOString().slice(0,10)}.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+      toast.error('Failed to download report');
+    }
+  };
 
   const onCopy = async (text) => {
     try {
@@ -127,22 +163,32 @@ const ResumeImprover = () => {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={regenerate} disabled={generating} className="btn-primary disabled:opacity-50">
-            {generating ? 'Regenerating…' : 'Regenerate'}
+            {generating ? 'Regenerating…' : 'Regenerate Improvements'}
           </button>
           <Link to={`/results/${resumeId}`} className="btn-secondary">Back to Results</Link>
         </div>
       </div>
 
+      <div className="mb-4 text-xs text-gray-500">Using your uploaded resume from Resume Upload page.</div>
+
       {/* Score */}
       <div className="card mb-6">
-        <ScoreBar score={analysis?.overallScore || 0} />
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+          <div className="col-span-2">
+            <ScoreBar score={analysis?.keywordCoverage || 0} />
+          </div>
+          <ScoreRing label="ATS" value={analysis?.atsScore || 0} color="#3B82F6" />
+          <ScoreRing label="Grammar" value={analysis?.grammarScore || 0} color="#10B981" />
+          <ScoreRing label="Clarity" value={analysis?.clarityScore || 0} color="#F59E0B" />
+          <ScoreRing label="Keywords" value={analysis?.keywordCoverage || 0} color="#8B5CF6" />
+        </div>
       </div>
 
       {/* Summary & Missing Skills */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">JD Fit Summary</h3>
-          <p className="text-gray-700 text-sm whitespace-pre-wrap">{analysis?.summary || 'No summary.'}</p>
+          <p className="text-gray-700 text-sm whitespace-pre-wrap">{analysis?.summary || 'Not available yet'}</p>
         </div>
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Missing Keywords / Skills</h3>
@@ -209,10 +255,41 @@ const ResumeImprover = () => {
         </div>
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Improved Resume</h3>
-          <div className="bg-green-50 border rounded p-3 h-64 overflow-auto whitespace-pre-wrap text-sm text-gray-800">
-            {preview || 'No improvements yet. Click Regenerate to create an improved version.'}
+          <div className="flex items-center gap-2 mb-2">
+            <button onClick={() => onCopy(preview || '')} className="btn-secondary text-xs">Copy All</button>
+            <button onClick={downloadReport} className="btn-secondary text-xs">Download PDF</button>
           </div>
+          <textarea
+            className="input-field h-64 w-full resize-none"
+            value={preview}
+            onChange={(e) => setPreview(e.target.value)}
+            placeholder={'No improvements yet. Click Regenerate to create an improved version.'}
+          />
         </div>
+      </div>
+
+      <div className="card mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">History</h3>
+          <span className="text-xs text-gray-500">Last 20 analyses</span>
+        </div>
+        {hLoading ? (
+          <div className="text-sm text-gray-500">Loading…</div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(history || []).map((item) => (
+              <div key={item._id} className="glass p-4 rounded-lg">
+                <div className="text-sm text-gray-600">{new Date(item.createdAt).toLocaleString()}</div>
+                <div className="mt-1 text-sm">Overall: {item.analysis?.overallScore ?? '-'}</div>
+                <div className="mt-1 text-xs text-gray-600">ATS {item.analysis?.atsScore ?? '-'} • Grammar {item.analysis?.grammarScore ?? '-'} • Clarity {item.analysis?.clarityScore ?? '-'}</div>
+                <div className="mt-3 flex gap-2">
+                  <button onClick={async () => { try { const r = await resumeImproverAPI.report(item._id); const blob = new Blob([r.data], { type: 'application/pdf' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `PrepMate_Resume_Report_${new Date(item.createdAt).toISOString().slice(0,10)}.pdf`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 3000);} catch {} }} className="btn-secondary text-xs">Download</button>
+                  <button onClick={async () => { try { const d = await resumeImproverAPI.history(); const found = (d.data.items || []).find((x) => x._id === item._id); if (found) { setAnalysis(found.analysis); setAnalysisId(found._id); } } catch {} }} className="btn-secondary text-xs">View Details</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

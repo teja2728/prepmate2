@@ -90,7 +90,7 @@ const Results = () => {
     } catch (_) {}
   };
   loadProgress();
-}, [resumeId]);
+}, [resumeId, generated]);
 
 
   const generateQuestions = async () => {

@@ -12,7 +12,7 @@ class GeminiService {
       const systemPrompt = `Return ONLY valid JSON with keys: {"challengeType":"coding|aptitude|sql|interview","difficulty":"Easy|Medium|Hard","question":"","answer":""}`;
       const userPrompt = `Generate a placement preparation challenge for a user based on their resume and target job.\nResume: ${profile?.resumeText || ''}\nJob Description: ${profile?.jdText || ''}\nSkills: ${skillsStr}\nExperience: ${profile?.experienceLevel || 'Fresher'}\nReturn output as valid JSON with fields: challengeType, difficulty, question, answer.`;
       const result = await this.ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: `${systemPrompt}\n\nUser: ${userPrompt}`,
         generationConfig: { maxOutputTokens: 512, temperature: 0.5 },
       });
