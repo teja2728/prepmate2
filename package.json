@@ -9,6 +9,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "client": "cd client && npm start",
+    "build": "npm run client:build",
     "client:build": "cd client && npm run build",
     "dev:full": "concurrently \"npm run dev\" \"npm run client\""
   },

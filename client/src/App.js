@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import FooterNav from './components/FooterNav';
+import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { GeneratedProvider } from './contexts/GeneratedContext';
@@ -11,13 +11,13 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import DailyChallenge from './pages/DailyChallenge';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import ProfilePage from './pages/ProfilePage';
 import Progress from './pages/Progress';
 import Register from './pages/Register';
 import Results from './pages/Results';
 import ResumeImprover from './pages/ResumeImprover';
 import SavedResources from './pages/SavedResources';
 import Upload from './pages/Upload';
-import ProfilePage from './pages/ProfilePage';
 
 // ✅ New page for Gemini Link Extraction
 function GeminiResources() {
@@ -28,7 +28,8 @@ function GeminiResources() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/generate/links');
+        const API_BASE = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:5000');
+        const res = await fetch(`${API_BASE}/api/generate/links`);
         const data = await res.json();
         if (data.success) {
           setText(data.text);
