@@ -17,15 +17,5 @@
   ],
   "crons": [
     { "path": "/api/cron-daily", "schedule": "0 0 * * *" }
-  ],
-  "functions": {
-    "api/[...route].js": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/cron-daily.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  }
+  ]
 }
