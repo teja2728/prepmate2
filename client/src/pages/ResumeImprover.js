@@ -1,25 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { resumeAPI, resumeImproverAPI } from '../services/api';
+import { Link, useParams } from 'react-router-dom';
 import { useGenerated } from '../contexts/GeneratedContext';
-import ScoreRing from '../components/ResumeImprover/ScoreRing';
+import { resumeAPI, resumeImproverAPI } from '../services/api';
 
-const ScoreBar = ({ score = 0 }) => {
-  const pct = Math.max(0, Math.min(100, Number(score) || 0));
-  const color = pct >= 80 ? 'bg-green-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500';
-  return (
-    <div>
-      <div className="flex items-center justify-between text-sm mb-1">
-        <span className="text-gray-700 font-medium">JD Match Score</span>
-        <span className="text-gray-700 font-semibold">{pct}%</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div className={`${color} h-2 rounded-full`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-};
+
 
 const ConfidenceBadge = ({ value }) => {
   const v = Math.max(0, Math.min(100, Number(value) || 0));
@@ -158,7 +143,7 @@ const ResumeImprover = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Resume Improver – AI-enhanced Professional Review</h1>
           <p className="text-gray-600 mt-2">
-            Resume: {resume?.parsedData?.name || 'Unknown'} • Uploaded: {resume ? new Date(resume.createdAt).toLocaleDateString() : ''}
+            Resume: {resume?.parsedData?.name || ''}  Uploaded: {resume ? new Date(resume.createdAt).toLocaleDateString() : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -172,17 +157,7 @@ const ResumeImprover = () => {
       <div className="mb-4 text-xs text-gray-500">Using your uploaded resume from Resume Upload page.</div>
 
       {/* Score */}
-      <div className="card mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
-          <div className="col-span-2">
-            <ScoreBar score={analysis?.keywordCoverage || 0} />
-          </div>
-          <ScoreRing label="ATS" value={analysis?.atsScore || 0} color="#3B82F6" />
-          <ScoreRing label="Grammar" value={analysis?.grammarScore || 0} color="#10B981" />
-          <ScoreRing label="Clarity" value={analysis?.clarityScore || 0} color="#F59E0B" />
-          <ScoreRing label="Keywords" value={analysis?.keywordCoverage || 0} color="#8B5CF6" />
-        </div>
-      </div>
+      
 
       {/* Summary & Missing Skills */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">

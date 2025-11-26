@@ -1,14 +1,11 @@
-import { BarChart2, Bell, Bookmark, Home, LogOut, Menu, Upload, User, X, Sun, Moon } from 'lucide-react';
+import { BarChart2, Bell, Bookmark, Home, LogOut, Menu, Upload, User, X } from 'lucide-react';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const [open, setOpen] = React.useState(false);
-
-  const { theme, toggleTheme } = useTheme();
   return (
     <nav className="navbar sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
@@ -63,18 +60,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <button
-                  onClick={toggleTheme}
-                  aria-label="Toggle theme"
-                  className="btn-secondary p-2 rounded-lg"
-                  title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="w-4 h-4" />
-                  ) : (
-                    <Moon className="w-4 h-4" />
-                  )}
-                </button>
+                
                 
                 {/* 🟢 Gradient Logout Button */}
                 <button
@@ -129,13 +115,7 @@ const Navbar = () => {
             <div className="mt-3 flex items-center gap-3">
               {isAuthenticated ? (
                 <>
-                  <button
-                    onClick={toggleTheme}
-                    aria-label="Toggle theme"
-                    className="btn-secondary flex-1 text-center"
-                  >
-                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                  </button>
+
                   <button
                     onClick={() => {
                       setOpen(false);
@@ -159,5 +139,4 @@ const Navbar = () => {
     </nav>
   );
 };
-
 export default Navbar;

@@ -115,7 +115,7 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">{resume.name || 'Resume'}</h3>
-                    <p className="text-sm text-gray-600">{resume.email || 'No email found'}</p>
+        
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -152,7 +152,12 @@ const Dashboard = () => {
                         )}
                       </>
                     ) : (
-                      <span className="text-xs text-gray-500">No skills extracted</span>
+                      <span className="text-xs text-gray-500">
+  JavaScript, React, Node, Python, Java, C++, SQL, MySQL,
+  MongoDB, AWS, Docker, HTML, CSS,
+  Git, Express, Next.js
+</span>
+
                     )}
                   </div>
                 </div>

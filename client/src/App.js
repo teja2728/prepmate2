@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Footer from './components/Footer';
 import FooterNav from './components/FooterNav';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -28,7 +29,7 @@ function GeminiResources() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const API_BASE = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:5000');
+        const API_BASE = process.env.REACT_APP_URL || (typeof window !== 'undefined' ? '' : 'http://localhost:5000');
         const res = await fetch(`${API_BASE}/api/generate/links`);
         const data = await res.json();
         if (data.success) {
@@ -201,6 +202,7 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </main>
+          <Footer />
           <FooterNav />
 
           {/* Toast Notifications */}

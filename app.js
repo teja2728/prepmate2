@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+const { FRONTEND_URL } = require('./config');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
@@ -18,7 +19,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: FRONTEND_URL === '' ? true : FRONTEND_URL,
   credentials: true
 }));
 

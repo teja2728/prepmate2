@@ -67,7 +67,9 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 GEMINI_API_KEY=your-gemini-api-key-here
 PORT=5000
 NODE_ENV=development
-CLIENT_URL=http://localhost:3000
+REACT_APP_URL=
+BACKEND_URL=http://localhost:5000
+FRONTEND_URL=http://localhost:3000
 ```
 
 6. **Start MongoDB:**
@@ -258,6 +260,19 @@ Resumes are stored using MongoDB GridFS for:
 3. Set up Google Gemini API key
 4. Configure CORS for production domain
 
+### CI/CD Environment Variables
+Set these in your deployment provider (e.g., Vercel → Project Settings → Environment Variables):
+
+- `REACT_APP_URL`
+  - Leave empty for same-origin (recommended on Vercel where frontend and API Functions share a domain)
+  - Or set to your API base URL (e.g., `https://api.myapp.com`) if frontend and backend are on different domains
+- `BACKEND_URL`
+  - Public URL of your backend (e.g., `https://myapp.vercel.app` or `https://api.myapp.com`)
+  - Optional utility for server-side link generation/logging
+- `FRONTEND_URL`
+  - The exact frontend origin allowed by CORS (e.g., `https://myapp.vercel.app` or `https://myapp.com`)
+  - If multiple origins, consider a comma-separated list and custom CORS logic
+
 ### Build and Deploy
 ```bash
 # Build frontend
@@ -291,7 +306,9 @@ Import the provided Postman collection (`postman/Prepmate_API.postman_collection
 - `GEMINI_API_KEY`: Google Gemini API key
 - `PORT`: Server port (default: 5000)
 - `NODE_ENV`: Environment (development/production)
-- `CLIENT_URL`: Frontend URL for CORS
+- `REACT_APP_URL`: Frontend API base URL embedded at build time. Leave empty for same-origin; set full API base if API is on another domain.
+- `BACKEND_URL`: Public URL of the backend (default http://localhost:5000). Optional helper for server-generated links.
+- `FRONTEND_URL`: Frontend URL allowed in CORS (default http://localhost:3000). Set to production domain when deployed.
 
 ### Gemini API Configuration
 - Model: `gemini-pro`

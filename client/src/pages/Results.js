@@ -284,7 +284,7 @@ const Results = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => setActiveTab('suggestions')} className="btn-secondary text-sm">Resume Suggestions</button>
+            
             <Link to={`/resume-improver/${resumeId}`} className="btn-primary text-sm">Resume Improver</Link>
             <Link to="/dashboard" className="btn-secondary text-sm">Back</Link>
           </div>
@@ -297,7 +297,6 @@ const Results = () => {
               { id: "questions", label: "Interview Questions", icon: HelpCircle },
               { id: "company", label: "Company Archive", icon: Building2 },
               { id: "resources", label: "Learning Resources", icon: BookOpen },
-              { id: "suggestions", label: "Resume Suggestions", icon: HelpCircle },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
